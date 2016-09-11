@@ -8,43 +8,41 @@ import com.karienomen.translator.batch.redis.BitcoinRecordItemReader;
 import com.karienomen.translator.batch.redis.BitcoinRecordItemWriter;
 import com.karienomen.translator.domain.BitcoinRecord;
 import com.karienomen.translator.domain.User;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.NoNodeAvailableException;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.node.NodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-//import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-//import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
 
 import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import javax.annotation.Resource;
+import java.net.ConnectException;
 import java.net.InetAddress;
 
 /**
@@ -55,6 +53,7 @@ import java.net.InetAddress;
 @EnableBatchProcessing
 @ComponentScan(basePackages = {"com.karienomen.translator"})
 @EnableElasticsearchRepositories(basePackages = "com.karienomen.translator")
+//@ImportResource("classpath:batch-context.xml")
 public class TranslatorConfig {
 
     private static Logger logger = LoggerFactory.getLogger(TranslatorConfig.class);
@@ -71,17 +70,17 @@ public class TranslatorConfig {
     /* Elasticsearch config*/
     /* Batch config for elasticsearch step*/
     @Bean
-    public ItemReader<User> elasticsearchreader() {
+    public ItemReader<User> elasticsearchReader() {
         return new UserItemReader();
     }
 
     @Bean
-    public ItemProcessor elasticsearchprocessor() {
+    public ItemProcessor elasticsearchProcessor() {
         return new UserItemProcessor();
     }
 
     @Bean
-    public ItemWriter elasticsearchwriter() {
+    public ItemWriter elasticsearchWriter() {
         return new UserItemWriter();
     }
 
@@ -90,10 +89,11 @@ public class TranslatorConfig {
 
     @Bean
     public NodeBuilder nodeBuilder() {
+        logger.debug("new NodeBuilder");
         return new NodeBuilder();
     }
 
-    @Bean
+    @Bean(name = "client")
     public Client getNodeClient() {
 
         Client client = null;
@@ -104,13 +104,15 @@ public class TranslatorConfig {
                                     InetAddress.getByName(environment.getProperty("elasticsearch.host")),
                                     Integer.parseInt(environment.getProperty("elasticsearch.port"))));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Error get Node Client", e);
         }
         return client;
     }
 
     @Bean
+    @DependsOn("client")
     public ElasticsearchOperations elasticsearchTemplate() {
+        logger.debug("new ElasticTemplate");
         return new ElasticsearchTemplate(getNodeClient());
     }
 
@@ -127,7 +129,7 @@ public class TranslatorConfig {
     }
 
     @Bean
-    public ItemWriter<BitcoinRecord> redisWriter() {
+    public ItemWriter redisWriter() {
         return new BitcoinRecordItemWriter();
     }
 
@@ -153,46 +155,18 @@ public class TranslatorConfig {
         return template;
     }
 
-
-//    @Bean
-//    public Job job1(JobBuilderFactory jobs, Step step1, Step step2) {
-//        return jobs.get("job1")
-//                .incrementer(new RunIdIncrementer())
-//                .flow(step1)
-////                .flow(step2)
-//                .end()
-//                .build();
-//    }
-//
-//    @Bean
-//    public Step step1() {
-//        return stepBuilderFactory.get("step1")
-//                .chunk(1)
-//                .reader(elasticsearchreader())
-//                .processor(elasticsearchprocessor())
-//                .writer(elasticsearchwriter())
-//                .build();
-//    }
-
-    @Bean
-    public Step step2() {
-        return stepBuilderFactory.get("step2")
-                .chunk(1)
-                .reader(redisReader())
-                .processor(redisProcessor())
-                .writer(redisWriter())
-                .build();
-    }
-
     @Bean
     public Flow flow1() {
         return new FlowBuilder<Flow>("flow1")
                 .start(stepBuilderFactory.get("step1")
-                                .chunk(1)
-                                .reader(elasticsearchreader())
-                                .processor(elasticsearchprocessor())
-                                .writer(elasticsearchwriter())
-                                .build())
+                        .chunk(1)
+                        .faultTolerant()
+                        .skipLimit(100000)
+                        .skip(NoNodeAvailableException.class)
+                        .skip(ElasticsearchException.class)
+                        .reader(elasticsearchReader())
+                        .writer(elasticsearchWriter())
+                        .build())
                 .build();
     }
 
@@ -201,8 +175,11 @@ public class TranslatorConfig {
         return new FlowBuilder<Flow>("flow2")
                 .start(stepBuilderFactory.get("step2")
                         .chunk(1)
+                        .faultTolerant()
+                        .skipLimit(100000)
+                        .skip(RedisConnectionFailureException.class)
+                        .skip(ConnectException.class)
                         .reader(redisReader())
-                        .processor(redisProcessor())
                         .writer(redisWriter())
                         .build())
                 .build();
@@ -216,6 +193,5 @@ public class TranslatorConfig {
                 .end()
                 .build();
     }
-
 
 }

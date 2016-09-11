@@ -14,7 +14,12 @@ public class UserItemProcessor implements ItemProcessor<User, User> {
 
     @Override
     public User process(User user) throws Exception {
-        logger.debug("Elasticsearch proccessor return: " + user);
+        logger.info("Elasticsearch proccessor get: " + user);
+        if (user.getId() == 0L){
+            logger.info("Empty USer in Elasticsearch proccessor ");
+            return null;
+        }
+        logger.info("Elasticsearch proccessor return: " + user);
         return user;
     }
 }

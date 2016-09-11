@@ -23,7 +23,7 @@ public class MongodbCommonRecordRepository {
     @Autowired
     CommonRecordRepository recordRepository;
 
-    HashMap<Long,CommonRecord> commonRecords = new HashMap<>();
+    HashMap<Long,CommonRecord> commonRecords = new HashMap<Long, CommonRecord>();
 
     public void saveBitcoinRecord(List<? extends BitcoinRecord> bitcoinRecords){
         for (BitcoinRecord record : bitcoinRecords){

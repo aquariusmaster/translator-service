@@ -17,15 +17,20 @@ public class UserItemWriter implements ItemWriter<User> {
 
     private static Logger logger = LoggerFactory.getLogger(UserItemWriter.class);
 
-    private List<User> userList = new ArrayList<>();
+    private List<User> userList = new ArrayList<User>();
 
     @Autowired
     MongodbCommonRecordRepository mongodbRepository;
 
     @Override
     public void write(List<? extends User> list) throws Exception {
+
+        if (list.get(0).getId() == 0L){
+            return;
+        }
         userList.addAll(list);
-        logger.debug("Elasticsearch writer return: " + userList);
+        logger.info("Elasticsearch writer get list: " + list);
+        logger.info("Elasticsearch writer save: " + userList);
         mongodbRepository.saveUser(list);
     }
 }

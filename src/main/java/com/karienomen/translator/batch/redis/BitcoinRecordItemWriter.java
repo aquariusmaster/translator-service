@@ -21,13 +21,17 @@ public class BitcoinRecordItemWriter implements ItemWriter<BitcoinRecord> {
 
     private static Logger logger = LoggerFactory.getLogger(BitcoinRecordItemWriter.class);
 
-    private List<BitcoinRecord> bitcoinRecords = new ArrayList<>();
+    private List<BitcoinRecord> bitcoinRecords = new ArrayList<BitcoinRecord>();
 
     @Autowired
     MongodbCommonRecordRepository mongodbRepository;
 
     @Override
     public void write(List<? extends BitcoinRecord> list) throws Exception {
+
+        if (list.get(0).getId() == 0L){
+            return;
+        }
         bitcoinRecords.addAll(list);
         logger.debug("RedisWriter return: " + bitcoinRecords);
 

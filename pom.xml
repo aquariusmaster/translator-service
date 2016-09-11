@@ -42,6 +42,14 @@
 			<version>3.0.7.RELEASE</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.springframework.batch/spring-batch-infrastructure -->
+		<dependency>
+			<groupId>org.springframework.batch</groupId>
+			<artifactId>spring-batch-infrastructure</artifactId>
+			<version>3.0.7.RELEASE</version>
+		</dependency>
+
+
 		<!--ElasticSearch Spring Data-->
 		<dependency>
 			<groupId>org.springframework.data</groupId>
@@ -75,6 +83,14 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.jcraft/jsch -->
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.54</version>
+		</dependency>
+
 
 
 	</dependencies>

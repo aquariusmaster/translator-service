@@ -28,7 +28,7 @@ public class UserItemReader implements ItemReader<User> {
     private static long count = 1L;
 
     @Override
-    public User read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException, NoNodeAvailableException {
+    public User read() throws Exception {
 
         User user = null;
         try{
@@ -47,7 +47,7 @@ public class UserItemReader implements ItemReader<User> {
                 count++;
             }
 
-            logger.info("Elasticsearch reader return: " + user);
+            logger.debug("Elasticsearch reader return: " + user);
         }catch(NoNodeAvailableException e){
             logger.error("Elasticsearch node unavailable. Sleep 5 sec...");
             Thread.sleep(5000);

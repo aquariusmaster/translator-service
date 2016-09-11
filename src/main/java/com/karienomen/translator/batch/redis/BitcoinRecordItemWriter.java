@@ -32,8 +32,8 @@ public class BitcoinRecordItemWriter implements ItemWriter<BitcoinRecord> {
         if (list.get(0).getId() == 0L){
             return;
         }
-        bitcoinRecords.addAll(list);
-        logger.debug("RedisWriter return: " + bitcoinRecords);
+//        bitcoinRecords.addAll(list);
+//        logger.debug("RedisWriter return: " + bitcoinRecords);
 
         mongodbRepository.saveBitcoinRecord(list);
     }

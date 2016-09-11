@@ -29,8 +29,8 @@ public class UserItemWriter implements ItemWriter<User> {
             return;
         }
         userList.addAll(list);
-        logger.info("Elasticsearch writer get list: " + list);
-        logger.info("Elasticsearch writer save: " + userList);
+//        logger.debug("Elasticsearch writer get list: " + list);
+//        logger.debug("Elasticsearch writer save: " + userList);
         mongodbRepository.saveUser(list);
     }
 }

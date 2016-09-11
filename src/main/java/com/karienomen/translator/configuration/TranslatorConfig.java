@@ -1,9 +1,7 @@
 package com.karienomen.translator.configuration;
 
-import com.karienomen.translator.batch.elasticsearch.UserItemProcessor;
 import com.karienomen.translator.batch.elasticsearch.UserItemReader;
 import com.karienomen.translator.batch.elasticsearch.UserItemWriter;
-import com.karienomen.translator.batch.redis.BitcoinRecordItemProcessor;
 import com.karienomen.translator.batch.redis.BitcoinRecordItemReader;
 import com.karienomen.translator.batch.redis.BitcoinRecordItemWriter;
 import com.karienomen.translator.domain.BitcoinRecord;
@@ -22,7 +20,6 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.job.builder.FlowBuilder;
 import org.springframework.batch.core.job.flow.Flow;
-import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -53,7 +50,6 @@ import java.net.InetAddress;
 @EnableBatchProcessing
 @ComponentScan(basePackages = {"com.karienomen.translator"})
 @EnableElasticsearchRepositories(basePackages = "com.karienomen.translator")
-//@ImportResource("classpath:batch-context.xml")
 public class TranslatorConfig {
 
     private static Logger logger = LoggerFactory.getLogger(TranslatorConfig.class);
@@ -72,11 +68,6 @@ public class TranslatorConfig {
     @Bean
     public ItemReader<User> elasticsearchReader() {
         return new UserItemReader();
-    }
-
-    @Bean
-    public ItemProcessor elasticsearchProcessor() {
-        return new UserItemProcessor();
     }
 
     @Bean
@@ -121,11 +112,6 @@ public class TranslatorConfig {
     @Bean
     public ItemReader<BitcoinRecord> redisReader() {
         return new BitcoinRecordItemReader();
-    }
-
-    @Bean
-    public ItemProcessor redisProcessor() {
-        return new BitcoinRecordItemProcessor();
     }
 
     @Bean

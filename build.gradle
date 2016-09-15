@@ -1,0 +1,73 @@
+group 'com.karienomen.translator'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven { url 'http://repo.spring.io/libs-release' }
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE'
+    }
+}
+
+apply plugin: org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+mainClassName = "com.karienomen.translator.TranslatorApplication"
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.karienomen.translator.TranslatorApplication'
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/main/")
+    }
+}
+
+dependencies {
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter', version: '1.4.0.RELEASE'
+
+	// https://mvnrepository.com/artifact/org.springframework.batch/spring-batch-core
+	compile group: 'org.springframework.batch', name: 'spring-batch-core', version: '3.0.7.RELEASE'
+
+	// https://mvnrepository.com/artifact/org.springframework.batch/spring-batch-infrastructure
+	compile group: 'org.springframework.batch', name: 'spring-batch-infrastructure', version: '3.0.7.RELEASE'
+
+	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-elasticsearch
+	compile group: 'org.springframework.data', name: 'spring-data-elasticsearch', version: '2.0.2.RELEASE'
+
+	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-redis
+	compile group: 'org.springframework.data', name: 'spring-data-redis', version: '1.7.2.RELEASE'
+
+	// https://mvnrepository.com/artifact/redis.clients/jedis
+	compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
+
+	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb
+	compile group: 'org.springframework.data', name: 'spring-data-mongodb', version: '1.9.2.RELEASE'
+
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.4.0.RELEASE'
+
+	// https://mvnrepository.com/artifact/com.jcraft/jsch
+	compile group: 'com.jcraft', name: 'jsch', version: '0.1.54'
+
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.0'
+}
